@@ -1,74 +1,5 @@
-class ScoreDrawer {
-    private _canvas: HTMLCanvasElement;
-    private _notes: number[];
-    private _oct: number = 0;
-
-    constructor() {
-        this._canvas = document.createElement('canvas');
-        this._canvas.width = 600;
-        this._canvas.height = 400;
-
-        this._notes = new Array(600).fill(-1);
-        document.body.insertBefore(this._canvas, document.body.children[0]);
-        document.addEventListener('keydown', this._keydown.bind(this));
-    }
-
-    private _keydown(e: KeyboardEvent) {
-        switch (e.code) {
-            case 'ArrowDown':
-                this._oct--;
-                break;
-            case 'ArrowUp':
-                this._oct++;
-                break;
-            case 'Num0':
-                this._oct = 0;
-                break;
-        }
-    }
-
-    update(note: number) {
-        const ctx = this._canvas.getContext('2d');
-        ctx.save();
-        ctx.clearRect(0, 0, this._canvas.width, this._canvas.height);
-        this._notes.push(note);
-        this._notes.shift();
-
-        const colors = ['#eee', '#ddd'];
-        ctx.strokeStyle = 'black';
-        ctx.scale(1, -2);
-        ctx.translate(0, -250);
-
-        ctx.beginPath();
-        for (let i = 0; i < 5; i++) {
-            ctx.moveTo(0, i * 10 + 160)
-            ctx.lineTo(600, i * 10 + 160);
-        }
-        ctx.stroke();
-        ctx.strokeStyle = '#ddd';
-        ctx.beginPath();
-        for (let i = 0; i < 5; i++) {
-            ctx.moveTo(0, i * 10 + 210);
-            ctx.lineTo(600, i * 10 + 210);
-            ctx.moveTo(0, i * 10 + 110);
-            ctx.lineTo(600, i * 10 + 110);
-        }
-        ctx.stroke()
-
-        ctx.fillStyle = 'red';
-        this._notes.forEach((note, x) => {
-            if (note !== -1) {
-                const octav = Math.floor(note / 12) - 4;
-                const n = note % 12;
-                ctx.fillRect(x, (noteTop[n] * 5) + (this._oct * 5) + 150 + (octav * 35) - 2.5, 1, 5);
-            }
-        });
-        ctx.restore();
-        ctx.font = '30px monospace';
-        ctx.fillText(this._oct.toString(), 0, 20);
-    }
-
-}
+import {ScoreDrawer} from './ScoreDrawer';
+import {parseScore} from './ScoreParser';
 
 class ToneDetector {
     private ctx: AudioContext;
@@ -82,7 +13,7 @@ class ToneDetector {
     public octav: number = 0;
     public noteName: string = '';
 
-    private drawer = new ScoreDrawer();
+    public drawer = new ScoreDrawer();
 
     constructor() {
         const audioCtx = new window.AudioContext();
@@ -134,7 +65,8 @@ class ToneDetector {
             this.note = noteFromPitch(ac);
             this.octav = Math.floor(this.note / 12) - 1;
         }
-        this.drawer.update(this.note);
+        this.drawer.pushNote(this.note);
+        this.drawer.update(time);
         requestAnimationFrame(this.update);
     }
 
@@ -195,7 +127,6 @@ class ToneDetector {
 }
 
 var noteStrings = ["C", "C#", "D", "D#", "E", "F", "F#", "G", "G#", "A", "A#", "B"];
-const noteTop =   [  0,  0.5,   1,  1.5,   2,  3,   3.5,   4,  4.5,   5,  5.5,  6];
 
 function noteFromPitch(frequency: number): number  {
 	var noteNum = 12 * (Math.log( frequency / 440 )/Math.log(2) );
@@ -204,3 +135,10 @@ function noteFromPitch(frequency: number): number  {
 
 const tone = new ToneDetector();
 tone.start();
+
+document.querySelector('#btnStart').addEventListener('click', _ => {
+    const txt = (document.querySelector('#inScore') as HTMLTextAreaElement).value;
+    const notes = parseScore(txt);
+    tone.drawer.start(notes);
+});
+
