@@ -1,0 +1,13 @@
+{
+  "name": "perfectSinger",
+  "version": "1.0.0",
+  "main": "index.js",
+  "license": "MIT",
+  "scripts": {
+    "build": "esbuild src/index.ts --outdir=dist --platform=browser --bundle",
+    "serve": "esbuild src/index.ts --servedir=. --outdir=dist --platform=browser --serve --sourcemap --bundle"
+  },
+  "devDependencies": {
+    "esbuild": "^0.12.15"
+  }
+}
