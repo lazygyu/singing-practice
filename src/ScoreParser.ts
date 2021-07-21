@@ -10,13 +10,14 @@ var noteStrings = ["C", "C#", "D", "D#", "E", "F", "F#", "G", "G#", "A", "A#", "
 
 export function parseScore(txt: string): any {
     let octav = 4;
-    let len = txt.length;
     let ch: string;
     let tempo = 120;
     let timeDelta = (60 * 1000) / tempo;
+    let defaultBit = 4;
     let defaultLength: number = timeDelta;
     let i = 0;
     txt = txt.toUpperCase().replace(/\b/g, '');
+    let len = txt.length;
 
     let curTime: number = 0;
 
@@ -37,54 +38,59 @@ export function parseScore(txt: string): any {
             start: curTime
         };
 
+        let dots = [1];
+
+        let curState = 0;
         note.note = noteStrings.indexOf(ch);
         next();
-        if (ch === '+' || ch === '-') {
-            note.note += ((ch === '+') ? 1 : -1);
-            if (note.note < 0) {
-                note.octav--;
-                note.note += 12;
-            } else if (note.note > 11) {
-                note.octav++;
-                note.note -= 12;
-            }
-            next();
-        }
 
-        tmp = '';
-        while (/[0-9]/.test(ch)) {
-            tmp += ch;
-            next();
-        }
-        if (tmp.length > 0) {
-            note.length = (timeDelta * 4) / parseInt(tmp, 10);
-        }
-        tmp = '';
-
-        if (ch === '.') {
-            note.length *= 1.5;
-            next();
-        }
-
-        ch = txt[i];
-        tmp = '';
-        if (ch === '"' || ch ==="'") {
-            next();
-            while(ch !== '"' && ch !== "'"){
-                tmp += ch;
+        while(i < len) {
+            if (['+', '-'].includes(ch)) {
+                    note.note += ((ch==='+') ? 1 : -1);
+                    if (note.note < 0) {
+                        note.octav--;
+                        note.note += 12;
+                    } else if (note.note > 11) {
+                        note.octav++;
+                        note.note -= 12;
+                    }
+                    next();
+            } else if (/[0-9]/.test(ch)) {
+                tmp = '';
+                while (/[0-9]/.test(ch)) {
+                    tmp += ch;
+                    next();
+                }
+                if (tmp.length > 0) {
+                    note.length = (timeDelta * 4) / parseInt(tmp, 10);
+                }
+            } else if (ch === '.') {
+                dots.push(dots[dots.length - 1] / 2);
                 next();
+            } else if (/['"]/.test(ch)) {
+                next();
+                tmp = '';
+                while(!/['"]/.test(ch)) {
+                    tmp += ch;
+                    next();
+                }
+                note.lylic = tmp;
+                console.log(tmp);
+                tmp = '';
+                next();
+            } else {
+                break;
             }
-            next();
-            note.lylic = tmp;
         }
+        note.length *= dots.reduce((p, v) => p + v, 0);
+
         curTime += note.length;
         results.push(note);
     }
 
     function parseTempo() {
-        i++;
         tmp = '';
-        ch = txt[i];
+        next();
         while(/[0-9]/.test(ch)) {
             tmp += ch;
             i++;
@@ -92,6 +98,7 @@ export function parseScore(txt: string): any {
         }
         tempo = parseInt(tmp);
         timeDelta = (60 * 1000) / tempo;
+        defaultLength = (timeDelta * 4) / defaultBit;
         tmp = '';
     }
 
@@ -102,7 +109,8 @@ export function parseScore(txt: string): any {
             tmp += txt[i];
             i++;
         }
-        defaultLength = (timeDelta * 4) / parseInt(tmp, 10);
+        defaultBit = parseInt(tmp, 10);
+        defaultLength = (timeDelta * 4) / defaultBit;
     }
 
     while(i < len) {
