@@ -16,7 +16,7 @@ export function parseScore(txt: string): any {
     let timeDelta = (60 * 1000) / tempo;
     let defaultLength: number = timeDelta;
     let i = 0;
-    txt = txt.toUpperCase();
+    txt = txt.toUpperCase().replace(/\b/g, '');
 
     let curTime: number = 0;
 
@@ -24,8 +24,12 @@ export function parseScore(txt: string): any {
 
     const results: Note[] = [];
 
+    function next() {
+        i++;
+        ch = txt[i];
+    }
+
     function parseNote() {
-        let offset = 1;
         const note: Note = {
             note: 0,
             octav: octav,
@@ -34,39 +38,43 @@ export function parseScore(txt: string): any {
         };
 
         note.note = noteStrings.indexOf(ch);
-        ch = txt[i+offset];
+        next();
         if (ch === '+' || ch === '-') {
-            note.note += 1;
-            offset++;
+            note.note += ((ch === '+') ? 1 : -1);
+            if (note.note < 0) {
+                note.octav--;
+                note.note += 12;
+            } else if (note.note > 11) {
+                note.octav++;
+                note.note -= 12;
+            }
+            next();
         }
-        ch = txt[i+offset];
+
         tmp = '';
         while (/[0-9]/.test(ch)) {
             tmp += ch;
-            offset++;
-            ch = txt[i+offset];
+            next();
         }
         if (tmp.length > 0) {
-            console.log('length', tmp);
             note.length = (timeDelta * 4) / parseInt(tmp, 10);
         }
         tmp = '';
+
         if (ch === '.') {
             note.length *= 1.5;
-            offset++;
+            next();
         }
-        i += offset;
+
         ch = txt[i];
         tmp = '';
-        if (ch === '"') {
-            i++;
-            ch = txt[i];
-            while(ch !== '"'){
+        if (ch === '"' || ch ==="'") {
+            next();
+            while(ch !== '"' && ch !== "'"){
                 tmp += ch;
-                i++;
-                ch = txt[i];
+                next();
             }
-            i++;
+            next();
             note.lylic = tmp;
         }
         curTime += note.length;

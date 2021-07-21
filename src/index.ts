@@ -30,15 +30,15 @@ class ToneDetector {
 
     private getUserMedia() {
         try {
-            navigator.getUserMedia({
+            const n = navigator;
+            const getUserMedia = n.getUserMedia.bind(n);
+            getUserMedia({
                 'audio': {
                     'echoCancellation': false,
                     'autoGainControl': false,
                     'noiseSuppression': false,
                 }
-            }, this._gotUserMedia.bind(this), () => {
-                alert('no media founded');
-            });
+            }, this._gotUserMedia.bind(this), e => {});
         } catch(e) {
             alert('getUserMedia failed : ' + e);
         }

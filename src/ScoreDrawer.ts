@@ -61,8 +61,10 @@ export class ScoreDrawer {
             if (note.note === -1) return;
 
             const x = (note.start - this._elapsed) / fps + screenLength;
+            if (x > screenLength) return;
             const y = (noteTop[note.note] * 5) + ((note.octav - 3) * 35) + 150 + (this._oct * 5) - 2.5;
             const width = (note.length) / fps - 1;
+            if (x + width < 0) return;
             ctx.fillRect(x, y, width, 5);
             if (note.lylic) {
                 ctx.save();
