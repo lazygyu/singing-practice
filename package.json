@@ -4,11 +4,19 @@
   "main": "index.js",
   "license": "MIT",
   "scripts": {
-    "build": "esbuild src/index.ts --outdir=dist --platform=browser --bundle",
-    "serve": "esbuild src/index.ts --servedir=. --outdir=dist --platform=browser --serve --sourcemap --bundle"
+    "build": "node ./build.js",
+    "watch": "node ./build.js watch",
+    "serve": "node ./build.js serve",
+    "test": "jest",
+    "test:watch": "jest --watch"
   },
   "devDependencies": {
+    "@es-pack/esbuild-sass-plugin": "^1.0.4",
+    "@types/jest": "^26.0.24",
     "@types/node": "^16.3.3",
-    "esbuild": "^0.12.15"
+    "autobind-decorator": "^2.4.0",
+    "esbuild": "^0.12.15",
+    "esbuild-jest": "^0.5.0",
+    "jest": "^27.0.6"
   }
 }

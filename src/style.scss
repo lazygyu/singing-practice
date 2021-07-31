@@ -1,0 +1,27 @@
+.sharer {
+    input[type=search] {
+        padding: .5rem;
+        display: block;
+        width: 100%;
+    }
+    .song-list {
+        &>div {
+            cursor: pointer;
+            padding: 0;
+            margin: 0;
+            h2 {
+                margin: 0;
+                padding: 0;
+                font-size: 16pt;
+                small {
+                    color: #ddd;
+                    font-size: 10pt;
+                }
+            }
+            border: 1px solid #eee;
+            &:hover {
+                background: #efefef;
+            }
+        }
+    }
+}

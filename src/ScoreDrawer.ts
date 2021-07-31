@@ -1,5 +1,6 @@
+import autobind from 'autobind-decorator';
 import {Note} from './ScoreParser';
-const noteTop =   [  0,  0.5,   1,  1.5,   2,  3,   3.5,   4,  4.5,   5,  5.5,  6];
+const noteTop = [0, 0.5, 1, 1.5, 2, 3, 3.5, 4, 4.5, 5, 5.5, 6];
 
 export class ScoreDrawer {
     private _canvas: HTMLCanvasElement;
@@ -8,63 +9,107 @@ export class ScoreDrawer {
     private _elapsed = 0;
     private _lastTime = 0;
 
+    private _screenWidth: number = 600;
+    private _screenTime: number = 600 * (1000 / 60);
+
     private _playScore: Note[] = [];
+
+    private _volumeElem: HTMLInputElement;
+    private _toneElem: HTMLInputElement;
+    private _inited: boolean = false;
+
+    private _currentNote: Note | null = null;
+
+    public get octav(): number {
+        return this._oct;
+    }
+
+    public set octav(v: number) {
+        this._oct = v;
+    }
+
+    public get screenWidth(): number {
+        return this._screenWidth;
+    }
+
+    public set screenWidth(v: number) {
+        this._screenWidth = v;
+        this._screenTime = this._screenWidth * (1000 / 60);
+    }
 
     constructor() {
         this._canvas = document.createElement('canvas');
-        this._canvas.width = 600;
+        this._canvas.width = this._screenWidth;
         this._canvas.height = 400;
+        this._canvas.style.width = '100%';
 
         this._notes = new Array(300).fill(-1);
-        document.body.insertBefore(this._canvas, document.body.children[0]);
-        document.addEventListener('keydown', this._keydown.bind(this));
+        const resizeObserver = new ResizeObserver(this._resizeCallback);
+        resizeObserver.observe(this._canvas);
+    }
+
+    public renderElement(): HTMLElement {
+        return this._canvas;
+    }
+
+    @autobind
+    private _resizeCallback() {
+        this._fitToContainer();
+    }
+
+    private _fitToContainer(): void {
+        const {offsetWidth, offsetHeight} = this._canvas;
+        this._canvas.width = offsetWidth;
+        this._screenWidth = offsetWidth;
+        const len = Math.floor(offsetWidth / 2);
+        if (this._notes.length < len) {
+            this._notes.unshift(...(new Array(len - this._notes.length).fill(-1)));
+        } else if (this._notes.length > len) {
+            this._notes.splice(0, (this._notes.length - len));
+        }
+        console.log('fit', offsetWidth, len, this._notes.length);
     }
 
     start(notes: Note[]): void {
         this._playScore = notes.slice();
-        console.log(this._playScore);
-        this._elapsed = 0;
+        this._elapsed = -1000;
     }
 
     stop(): void {
         this._playScore = [];
     }
 
-    private _keydown(e: KeyboardEvent) {
-        switch (e.code) {
-            case 'ArrowDown':
-                this._oct--;
-                break;
-            case 'ArrowUp':
-                this._oct++;
-                break;
-            case 'Num0':
-                this._oct = 0;
-                break;
-            case 'ArrowLeft':
-                this._elapsed -= 100;
-                break;
-            case 'ArrowRight':
-                this._elapsed += 100;
-                break;
-        }
+    public get currentTime(): number {
+        return this._elapsed;
     }
 
     private _renderNotes(ctx: CanvasRenderingContext2D): void {
+        ctx.save();
         const fps = (1000/60);
-        const screenLength = 600;
+        const screenLength = this._screenWidth;
+        const halfLength = screenLength / 2;
+        ctx.translate(halfLength, 0);
         const screenTime = screenLength * fps;
+        const half = screenTime / 2;
+
+        let current: Note | null = null;
 
         this._playScore.forEach(note => {
-            // if (note.start - this._elapsed > screenTime) return;
-            // if (note.start + note.length < this._elapsed) return;
             if (note.note === -1) return;
 
-            const x = (note.start - this._elapsed) / fps + screenLength;
-            if (x > screenLength) return;
-            const y = (noteTop[note.note] * 5) + ((note.octav - 3) * 35) + 150 + (this._oct * 5) - 2.5;
+            const x = (note.start - this._elapsed) / fps;
+            if (x > halfLength) return;
+
             const width = (note.length) / fps - 1;
-            if (x + width < 0) return;
+            if (x + width < -halfLength) return;
+
+            const y = (noteTop[note.note] * 5) + ((note.octav - 3) * 35) + 150 + (this._oct * 5) - 2.5;
+            if (note.start <= this._elapsed && note.start + note.length - fps >= this._elapsed) {
+                current = note;
+                ctx.fillStyle = 'orange';
+            } else {
+                ctx.fillStyle = 'blue';
+            }
             ctx.fillRect(x, y, width, 5);
             if (note.lylic) {
                 ctx.save();
@@ -75,20 +120,26 @@ export class ScoreDrawer {
                 ctx.restore();
             }
         });
+        ctx.restore();
+        this._currentNote = current;
     }
+
+    public getCurrentNote(): Note | null {
+        return this._currentNote;
+    }
+
+    
 
     pushNote(note: number) {
         this._notes.push(note);
         this._notes.shift();
     }
 
-    update(timestamp: number) {
-        if (this._lastTime === 0) {
-            this._lastTime = timestamp;
-        }
-        const delta = timestamp - this._lastTime;
-        this._lastTime = timestamp;
+    update(delta: number) {
         this._elapsed += delta;
+    }
+
+    render() {
         const ctx = this._canvas.getContext('2d');
         ctx.save();
         ctx.font = '14px monospace';
@@ -96,49 +147,69 @@ export class ScoreDrawer {
         ctx.clearRect(0, 0, this._canvas.width, this._canvas.height);
 
         const colors = ['#eee', '#ddd'];
-        ctx.strokeStyle = 'black';
         ctx.scale(1, -1);
-        ctx.translate(0, -250);
+        ctx.translate(0, -300);
 
+        this._renderLines(ctx);
+
+        ctx.globalAlpha = 0.5;
+        ctx.fillStyle = 'blue';
+        this._renderNotes(ctx);
+
+        this._renderVoice(ctx);
+
+        
+        ctx.strokeStyle = 'yellowgreen';
+        ctx.beginPath();
+        ctx.moveTo(this._screenWidth / 2, 0);
+        ctx.lineTo(this._screenWidth / 2, 400);
+        ctx.stroke();
+
+        ctx.restore();
+        ctx.font = '30px monospace';
+        ctx.fillText(this._oct.toString(), 0, 20);
+
+        if (!this._inited) {
+            ctx.save();
+            ctx.textAlign = 'center';
+            ctx.fillText('시작버튼을 눌러주세요!', ctx.canvas.width / 2, ctx.canvas.height / 2);
+            ctx.restore();
+        }
+    }
+
+    private _renderVoice(ctx: CanvasRenderingContext2D): void {
+        ctx.fillStyle = 'red';
+        this._notes.forEach((note, x) => {
+            if (note !== -1) {
+                const octav = Math.floor(note / 12) - 4;
+                const n = note % 12;
+                ctx.fillRect(x, (noteTop[n] * 5) + 150 + (octav * 35) - 2.5, 1, 5);
+            }
+        });
+
+    }
+
+    public inited(): void {
+        this._inited = true;
+    }
+
+    private _renderLines(ctx: CanvasRenderingContext2D): void {
+        ctx.strokeStyle = 'black';
         ctx.beginPath();
         for (let i = 0; i < 5; i++) {
             ctx.moveTo(0, i * 10 + 160)
-            ctx.lineTo(600, i * 10 + 160);
+            ctx.lineTo(this._screenWidth, i * 10 + 160);
         }
         ctx.stroke();
         ctx.strokeStyle = '#ddd';
         ctx.beginPath();
         for (let i = 0; i < 5; i++) {
             ctx.moveTo(0, i * 10 + 210);
-            ctx.lineTo(600, i * 10 + 210);
+            ctx.lineTo(this._screenWidth, i * 10 + 210);
             ctx.moveTo(0, i * 10 + 110);
-            ctx.lineTo(600, i * 10 + 110);
+            ctx.lineTo(this._screenWidth, i * 10 + 110);
         }
         ctx.stroke()
-        ctx.globalAlpha = 0.5;
-        ctx.fillStyle = 'blue';
-        this._renderNotes(ctx);
-
-        ctx.fillStyle = 'red';
-        this._notes.forEach((note, x) => {
-            if (note !== -1) {
-                const octav = Math.floor(note / 12) - 4;
-                const n = note % 12;
-                ctx.fillRect(x, (noteTop[n] * 5) + (this._oct * 5) + 150 + (octav * 35) - 2.5, 1, 5);
-            }
-        });
-
-        ctx.strokeStyle = 'yellowgreen';
-        ctx.beginPath();
-        ctx.moveTo(300, 0);
-        ctx.lineTo(300, 400);
-        ctx.stroke();
-
-
-        ctx.restore();
-        ctx.font = '30px monospace';
-        ctx.fillText(this._oct.toString(), 0, 20);
     }
-
 }
 

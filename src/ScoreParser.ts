@@ -23,6 +23,8 @@ export function parseScore(txt: string): any {
 
     let tmp: string = '';
 
+    let lastNote: Note | null = null;
+
     const results: Note[] = [];
 
     function next() {
@@ -31,7 +33,7 @@ export function parseScore(txt: string): any {
     }
 
     function parseNote() {
-        const note: Note = {
+        let note: Note = {
             note: 0,
             octav: octav,
             length: defaultLength,
@@ -39,22 +41,22 @@ export function parseScore(txt: string): any {
         };
 
         let dots = [1];
-
         let curState = 0;
+        let legato = false;
         note.note = noteStrings.indexOf(ch);
         next();
 
         while(i < len) {
-            if (['+', '-'].includes(ch)) {
-                    note.note += ((ch==='+') ? 1 : -1);
-                    if (note.note < 0) {
-                        note.octav--;
-                        note.note += 12;
-                    } else if (note.note > 11) {
-                        note.octav++;
-                        note.note -= 12;
-                    }
-                    next();
+            if (['+', '#', '-'].includes(ch)) {
+                note.note += ((ch !== '-') ? 1 : -1);
+                if (note.note < 0) {
+                    note.octav--;
+                    note.note += 12;
+                } else if (note.note > 11) {
+                    note.octav++;
+                    note.note -= 12;
+                }
+                next();
             } else if (/[0-9]/.test(ch)) {
                 tmp = '';
                 while (/[0-9]/.test(ch)) {
@@ -70,22 +72,39 @@ export function parseScore(txt: string): any {
             } else if (/['"]/.test(ch)) {
                 next();
                 tmp = '';
-                while(!/['"]/.test(ch)) {
+                while (!/['"]/.test(ch)) {
                     tmp += ch;
                     next();
                 }
                 note.lylic = tmp;
-                console.log(tmp);
                 tmp = '';
+                next();
+            } else if (ch === '&') {
+                legato = true;
                 next();
             } else {
                 break;
             }
         }
-        note.length *= dots.reduce((p, v) => p + v, 0);
+        let notelen = 0;
+        dots.forEach(l => {
+            notelen += l * note.length;
+        });
+        note.length = notelen;
 
-        curTime += note.length;
-        results.push(note);
+        if (lastNote && lastNote.note === note.note && lastNote.octav === note.octav) {
+            lastNote.length += note.length;
+            note = lastNote;
+        } else {
+            results.push(note);
+        }
+        lastNote = null;
+
+        if (legato) {
+            lastNote = note;
+        }
+
+        curTime += notelen;
     }
 
     function parseTempo() {
