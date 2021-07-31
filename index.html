@@ -25,13 +25,5 @@
         <button type="button" id="btnStop">Stop</button>
     </div>
     <script src="dist/index.js"></script>
-    <script>
-        const samples = document.querySelectorAll('.sample');
-        for(let i = 0; i < samples.length; i++) {
-            samples[i].addEventListener('click', e => {
-                document.querySelector('#inScore').value = e.target.innerText;
-            });
-        }
-    </script>
 </body>
 </html>
