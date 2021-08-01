@@ -2,9 +2,11 @@ import {ScoreDrawer} from './ScoreDrawer';
 import {ToneDetector} from './ToneDetector';
 import {ToneGenerator} from './ToneGanerator';
 import autobind from 'autobind-decorator';
-import {Note} from './ScoreParser';
+import {Note, parseScore} from './ScoreParser';
 import {Sharer} from './Sharer';
 import {SongArticle} from "./SongArticle";
+import {SongEditor} from './SongEditor';
+import {cEl} from './DOMUtil';
 
 const UPDATE_INTERVAL = 1000 / 60;
 
@@ -25,6 +27,10 @@ export class App {
 
     private sharer: Sharer = new Sharer();
 
+    private songEditor: SongEditor = new SongEditor();
+
+    private blind: HTMLDivElement;
+
     constructor(appContainer: HTMLElement) {
         
         this.drawer = new ScoreDrawer();
@@ -34,44 +40,69 @@ export class App {
     }
 
     private createElements(): void {
-        const wrapper = document.createElement('div');
+        this.blind = cEl('div', {class: 'blind'}, 'Click to start app');
+        const wrapper = cEl('div', {});
 
-        const canvasContainer = document.createElement('container');
+        const canvasContainer = cEl('div', {});
         const canvas = this.drawer.renderElement();
         canvasContainer.appendChild(canvas);
         this.drawer.start([]);
 
         wrapper.appendChild(canvasContainer);
 
+        wrapper.appendChild(this.songEditor.render());
         wrapper.appendChild(this.sharer.render());
         this.wrapper = wrapper;
         this.bindEvents();
+        document.body.appendChild(this.blind);
     }
 
     private bindEvents(): void {
         this.sharer.on('song-select', this._songSelected);
-    }
+        this.songEditor.on('play', async _ => {
+            if (!this.inited) {
+                return;
+            }
+            const notes = parseScore(this.songEditor.score);
+            this.playSong(notes);
+        });
+        this.songEditor.on('stop', _ => {
+            this.stopSong();
+        });
 
-    private _songSelected(song: SongArticle) {
-        (<HTMLTextAreaElement>document.querySelector('#inScore')).value = song.score;
-    }
+        this.songEditor.on('key-up', _ => {
+            this.keyUp();
+        });
 
-    public init(): void {
-        this.audio = new AudioContext();
-        this.detector = new ToneDetector(this.audio);
-        this.player = new ToneGenerator(this.audio);
-
-        this.detector.on('note', this._onNote);
-        this.detector.on('inited', this._detectorInited);
-
-        this.detector.start();
-        this.drawer.start([]);
+        this.songEditor.on('key-down', _ => {
+            this.keyDown();
+        });
+        this.blind.addEventListener('click', async _ => {
+            await this.init();
+            this.blind.style.display = 'none';
+        });
     }
 
     @autobind
-    private _detectorInited(): void {
-        this.drawer.inited();
-        this.inited = true;
+    private _songSelected(song: SongArticle) {
+        this.songEditor.score = song.score;
+    }
+
+    public init(): Promise<void> {
+        return new Promise((rs) => {
+            this.audio = new AudioContext();
+            this.detector = new ToneDetector(this.audio);
+            this.player = new ToneGenerator(this.audio);
+
+            this.detector.on('note', this._onNote);
+            this.detector.on('inited', () => {
+                this.inited = true;
+                this.drawer.inited();
+                rs();
+            });
+            this.detector.start();
+            this.drawer.start([]);
+        });
     }
 
     public playSong(notes: Note[]): void {
@@ -145,6 +176,7 @@ export class App {
 
     public setKey(key: number): void {
         this.key = key;
+        this.songEditor.key = key;
         this.drawer.octav = this.key;
     }
 }

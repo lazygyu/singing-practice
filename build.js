@@ -15,6 +15,7 @@ const options = {
 let watch = false;
 
 if (process.argv.includes('watch')) {
+    options.sourcemap = 'external';
     options.watch = {
         onRebuild(err, result) {
             if (err) console.error('Watch build failed', err);
@@ -25,6 +26,7 @@ if (process.argv.includes('watch')) {
 }
 
 if (process.argv.includes('serve')) {
+    options.sourcemap = 'inline';
     esbuild.serve({
         servedir: __dirname,
     }, options).then(result => {

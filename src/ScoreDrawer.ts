@@ -40,7 +40,7 @@ export class ScoreDrawer {
     constructor() {
         this._canvas = document.createElement('canvas');
         this._canvas.width = this._screenWidth;
-        this._canvas.height = 400;
+        this._canvas.height = 250;
         this._canvas.style.width = '100%';
 
         this._notes = new Array(300).fill(-1);
@@ -128,8 +128,6 @@ export class ScoreDrawer {
         return this._currentNote;
     }
 
-    
-
     pushNote(note: number) {
         this._notes.push(note);
         this._notes.shift();
@@ -168,13 +166,6 @@ export class ScoreDrawer {
         ctx.restore();
         ctx.font = '30px monospace';
         ctx.fillText(this._oct.toString(), 0, 20);
-
-        if (!this._inited) {
-            ctx.save();
-            ctx.textAlign = 'center';
-            ctx.fillText('시작버튼을 눌러주세요!', ctx.canvas.width / 2, ctx.canvas.height / 2);
-            ctx.restore();
-        }
     }
 
     private _renderVoice(ctx: CanvasRenderingContext2D): void {
