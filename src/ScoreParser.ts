@@ -122,14 +122,14 @@ export function parseScore(txt: string): any {
             if (results[i].note !== -1) {
                 cnt++;
             }
-            if (cnt === len || i === 0) {
+            if (cnt === len) {
                 start = i;
                 break;
             }
         }
-        for (let i = 0, cur = 0; cur < len && start + i < results.length; i++) {
+        for (let i = start, cur = 0; cur < len && i < results.length; i++) {
             if (results[i].note === -1) continue;
-            results[start + i].lylic = tmp[cur];
+            results[i].lylic = tmp[cur];
             cur++;
         }
         tmp = '';
