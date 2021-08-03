@@ -206,4 +206,19 @@ describe('ScoreParser', () => {
         ]);
 
     });
+
+    it('skip slient note for lylics string', () => {
+        const input = '>c4<ef&f4rf[이대로널]';
+        const result = parseScore(input);
+
+        expect(result).toEqual([
+            {note: 0, octav: 5, length: 500, start: 0, lylic: '이'},
+            {note: 4, octav: 4, length: 500, start: 500, lylic: '대'},
+            {note: 5, octav: 4, length: 1000, start: 1000, lylic: '로'},
+            {note: -1, octav: 4, length: 500, start: 2000},
+            {note: 5, octav: 4, length: 500, start: 2500, lylic: '널'}
+        ]);
+
+        console.log(result);
+    });
 });

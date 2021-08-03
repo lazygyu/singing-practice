@@ -116,9 +116,21 @@ export function parseScore(txt: string): any {
         }
         const len = tmp.length;
         if (len === 0) return;
-        const start = Math.max(0, results.length - len);
-        for (let i = 0; i < len && start + i < results.length; i++) {
-            results[start + i].lylic = tmp[i];
+        let cnt = 0;
+        let start = 0;
+        for (let i = results.length - 1; i >= 0; i--) {
+            if (results[i].note !== -1) {
+                cnt++;
+            }
+            if (cnt === len || i === 0) {
+                start = i;
+                break;
+            }
+        }
+        for (let i = 0, cur = 0; cur < len && start + i < results.length; i++) {
+            if (results[i].note === -1) continue;
+            results[start + i].lylic = tmp[cur];
+            cur++;
         }
         tmp = '';
     }
