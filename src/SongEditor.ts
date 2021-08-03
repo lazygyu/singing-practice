@@ -37,7 +37,7 @@ export class SongEditor extends EventEmitter {
         const chkLabel = cEl('label', {}, 'play melody');
         chkLabel.appendChild(this.chkMelody);
 
-        this.inVolume = cEl('input', {type: 'range', min: 0, max: 100, value: 30});
+        this.inVolume = cEl('input', {type: 'range', min: 0, max: 100, value: 30, step: 1});
 
         this.inScore = cEl('textarea', {class: 'inScore'});
 
@@ -63,7 +63,7 @@ export class SongEditor extends EventEmitter {
             this.emit('change', 'melody', this.chkMelody.checked);
         });
         this.inVolume.addEventListener('input', e => {
-            this.emit('change', 'volume', this.inVolume.value);
+            this.emit('change', 'volume', parseInt(this.inVolume.value, 10) / 100);
         });
     }
 

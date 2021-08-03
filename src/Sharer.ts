@@ -1,6 +1,6 @@
 import autobind from 'autobind-decorator';
 import {EventEmitter} from './EventEmitter';
-import {FileModel, Model} from './model';
+import {FileModel, Model} from './Model';
 import {SongArticle} from './SongArticle';
 import {SongList} from './SongList';
 

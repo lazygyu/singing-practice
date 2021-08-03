@@ -80,7 +80,7 @@ export class App {
         this.songEditor.on('change', (prop, value) => {
             switch (prop) {
                 case 'melody':
-                    this.playMusic = value;
+                    this.toggleSound(value);
                     break;
                 case 'volume':
                     this.setVolume(value);
