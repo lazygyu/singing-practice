@@ -107,6 +107,22 @@ export function parseScore(txt: string): any {
         curTime += notelen;
     }
 
+    function parseStringLylic() {
+        tmp = '';
+        next();
+        while (']' !== ch) {
+            tmp += ch;
+            next();
+        }
+        const len = tmp.length;
+        if (len === 0) return;
+        const start = Math.max(0, results.length - len);
+        for (let i = 0; i < len && start + i < results.length; i++) {
+            results[start + i].lylic = tmp[i];
+        }
+        tmp = '';
+    }
+
     function parseTempo() {
         tmp = '';
         next();
@@ -163,6 +179,9 @@ export function parseScore(txt: string): any {
                 break;
             case 'L':
                 parseDefaultLength();
+                break;
+            case '[':
+                parseStringLylic();
                 break;
             default:
                 i++;

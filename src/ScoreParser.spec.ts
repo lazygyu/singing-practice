@@ -1,6 +1,30 @@
 import {Note, parseScore} from './ScoreParser';
 
+const noteStrings = ["C", "C#", "D", "D#", "E", "F", "F#", "G", "G#", "A", "A#", "B"];
+
 describe('ScoreParser', () => {
+    let _notestart = 0;
+
+    function getNote(ch: string): number {
+        return noteStrings.indexOf(ch.toUpperCase());
+    }
+    function makeNote(data: Partial<Note>): Note {
+        const note = {note: data.note ?? 0, length: data.length ?? 0, octav: data.octav ?? 4, start: _notestart};
+        if (data.lylic) {
+            note.lylic = data.lylic;
+        }
+        _notestart += data.length ?? 0;
+        return note;
+    }
+
+    function resetNote(): void {
+        _notestart = 0;
+    }
+
+    beforeEach(() => {
+        resetNote();
+    });
+
     it('empty string returns empty array', () => {
         const input = '';
 
@@ -98,22 +122,16 @@ describe('ScoreParser', () => {
 
         const result = parseScore(input);
 
-        let start = 0;
-        function makeNote(length: number): Note {
-            const note = {note: 0, length, octav: 4, start};
-            start += length;
-            return note;
-        }
 
         expect(result).toEqual([
-            makeNote(2000),
-            makeNote(1000),
-            makeNote(2000 / 3),
-            makeNote(500),
-            makeNote(250),
-            makeNote(125),
-            makeNote(62.5),
-            makeNote(31.25),
+            makeNote({length: 2000}),
+            makeNote({length: 1000}),
+            makeNote({length: 2000 / 3}),
+            makeNote({length: 500}),
+            makeNote({length: 250}),
+            makeNote({length: 125}),
+            makeNote({length: 62.5}),
+            makeNote({length: 31.25}),
         ]);
     });
 
@@ -136,6 +154,7 @@ describe('ScoreParser', () => {
             {note: 0, length: 750, octav: 4, start: 0}
         ]);
     });
+
     it('legato does not make two different note to one', () => {
         const input = 'c&d8';
 
@@ -147,4 +166,44 @@ describe('ScoreParser', () => {
         ]);
     });
 
+    it('lylic string', () => {
+        const input = 'abc&cd[가나다라]';
+
+        const result = parseScore(input);
+
+        expect(result).toEqual([
+            makeNote({note: getNote('a'), lylic: '가', length: 500}),
+            makeNote({note: getNote('b'), lylic: '나', length: 500}),
+            makeNote({note: getNote('c'), lylic: '다', length: 1000}),
+            makeNote({note: getNote('d'), lylic: '라', length: 500}),
+        ]);
+    });
+
+    it('cut off lylics longer than notes', () => {
+        const input = 'abc&cd[가나다라마바사]';
+
+        const result = parseScore(input);
+
+        expect(result).toEqual([
+            makeNote({note: getNote('a'), lylic: '가', length: 500}),
+            makeNote({note: getNote('b'), lylic: '나', length: 500}),
+            makeNote({note: getNote('c'), lylic: '다', length: 1000}),
+            makeNote({note: getNote('d'), lylic: '라', length: 500}),
+        ]);
+
+    });
+
+    it('only correct notes takes the lylics', () => {
+        const input = 'abc&cd[가나]';
+
+        const result = parseScore(input);
+
+        expect(result).toEqual([
+            makeNote({note: getNote('a'), length: 500}),
+            makeNote({note: getNote('b'), length: 500}),
+            makeNote({note: getNote('c'), lylic: '가', length: 1000}),
+            makeNote({note: getNote('d'), lylic: '나', length: 500}),
+        ]);
+
+    });
 });
