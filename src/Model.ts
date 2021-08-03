@@ -197,7 +197,37 @@ f8.'예'>c'전'&c<b-b-'으'e-'로'&e-4. b-'돌'>c'아'
 d-8'가'c'고'<b-'싶'&b-8a-'은'a-'마'&a-8f'음'g'뿐'&g8a-'이'a-'야'&
 a-2`
 
-    }
+    },
+    {
+        title: '천년의사랑',
+        singer: '박완규',
+        author: 'sample',
+        score: `t66 o3 l8
+>c4<ef&f4rf[이대로널]
+ebbe b>c16c16&c4[보낼수는없다고]
+<a4agfre[밤을세워간]
+df>dc c<b16b16&b4[절히기도했지만]
+>c4<ef&f4 r f[더이상널]
+ebbe b>c16c16&c16e16e16e16&[사랑할수없다면차라리]
+ef16<a16&a4 r a4g#[나도데려]
+a2.r4[가]
+>f2rffg[내마지막]
+fe16e16&e4r2[소원은]
+l16 d8dd&d8ef&f8ed&d<b8. [하늘이끝내모른척]
+>c8<b>c&cdee&e8<a8>c8e8[저버린대-도불꽃처]
+f4 r fga8gg&g8ff&[럼꺼지지않는사랑]
+f8ee*e4r2[으로]
+f8fg&g8a8 d8de&e8f8[영원히넌가슴속에]
+r8 aab8ab*b4 r8 e8[타오를테니나]
+>c4c8cc&c4r8d8[를위해서눈]
+<b8a8g8f8 d8ee&e4 [물도참아야했던]
+f8fg&g8ad&d8de&e8f8[그동안에넌얼마나]
+r8aab8ab&b4r8e8[힘이들었니천]
+>c4c8cc&c4r8d8[년이가도나]
+<b8a8g8f8 d8ee&e4[너를잊을수없어]
+l8 ffga>c4<b.a16[사랑했기때문 ]
+a1[에]`
+    },
 ];
 
 
