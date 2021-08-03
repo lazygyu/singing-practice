@@ -214,7 +214,7 @@ export class FileModel implements Model {
     }
 
     public getLatest(): SongArticle[] {
-        const result = this.list.slice(0, 5);
+        const result = this.list.slice(0, 20);
         return result;
     }
 
