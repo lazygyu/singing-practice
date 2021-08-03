@@ -1,5 +1,6 @@
 import autobind from 'autobind-decorator';
 import {EventEmitter} from './EventEmitter';
+import {FileModel, Model} from './model';
 import {SongArticle} from './SongArticle';
 import {SongList} from './SongList';
 
@@ -7,6 +8,9 @@ export class Sharer extends EventEmitter {
     private _searchInput: HTMLInputElement;
     private _wrapper: HTMLDivElement;
     private _list: SongList = new SongList();
+
+    private model: Model = new FileModel();
+
     constructor() {
         super();
 
@@ -21,6 +25,8 @@ export class Sharer extends EventEmitter {
         this._wrapper.appendChild(this._list.render());
 
         this._list.on('click', this._listClick);
+        
+        this._list.list = this.model.getLatest();
     }
 
     render(): HTMLElement {

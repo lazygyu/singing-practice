@@ -77,6 +77,16 @@ export class App {
         this.songEditor.on('key-down', _ => {
             this.keyDown();
         });
+        this.songEditor.on('change', (prop, value) => {
+            switch (prop) {
+                case 'melody':
+                    this.playMusic = value;
+                    break;
+                case 'volume':
+                    this.setVolume(value);
+                    break;
+            }
+        });
         this.blind.addEventListener('click', async _ => {
             await this.init();
             this.blind.style.display = 'none';

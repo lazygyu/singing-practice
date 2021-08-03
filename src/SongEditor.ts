@@ -29,20 +29,6 @@ export class SongEditor extends EventEmitter {
         this.btnKeyUp = cBtn('Key Up');
         this.btnKeyDown = cBtn('Key Down');
 
-        this.btnPlay.addEventListener('click', e => {
-            this._clickHandler('play');
-        });
-
-        this.btnStop.addEventListener('click', e => {
-            this._clickHandler('stop');
-        });
-
-        this.btnKeyDown.addEventListener('click', e => {
-            this._clickHandler('key-down');
-        });
-        this.btnKeyUp.addEventListener('click', e => {
-            this._clickHandler('key-up');
-        });
 
 
         this.inKey = cEl('input', {type: 'number', value: '0'});
@@ -67,6 +53,18 @@ export class SongEditor extends EventEmitter {
             this.btnSave,
             this.btnUpload,
         ]);
+
+        this.btnPlay.addEventListener('click', e => { this._clickHandler('play'); });
+        this.btnStop.addEventListener('click', e => { this._clickHandler('stop'); });
+        this.btnKeyDown.addEventListener('click', e => { this._clickHandler('key-down'); });
+        this.btnKeyUp.addEventListener('click', e => { this._clickHandler('key-up'); });
+
+        this.chkMelody.addEventListener('input', e => {
+            this.emit('change', 'melody', this.chkMelody.checked);
+        });
+        this.inVolume.addEventListener('input', e => {
+            this.emit('change', 'volume', this.inVolume.value);
+        });
     }
 
     public set key(v: number) {

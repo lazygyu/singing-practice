@@ -67,7 +67,6 @@ export class ScoreDrawer {
         } else if (this._notes.length > len) {
             this._notes.splice(0, (this._notes.length - len));
         }
-        console.log('fit', offsetWidth, len, this._notes.length);
     }
 
     start(notes: Note[]): void {
