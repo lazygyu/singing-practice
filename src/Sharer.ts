@@ -21,7 +21,7 @@ export class Sharer extends EventEmitter {
         this._searchInput.type = 'search';
         this._searchInput.placeholder = '검색어를 입력하세요';
 
-        this._wrapper.appendChild(this._searchInput);
+        // this._wrapper.appendChild(this._searchInput);
         this._wrapper.appendChild(this._list.render());
 
         this._list.on('click', this._listClick);
