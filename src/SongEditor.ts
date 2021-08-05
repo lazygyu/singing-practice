@@ -45,7 +45,6 @@ export class SongEditor extends EventEmitter {
             chkLabel,
             this.inVolume,
             this.btnKeyDown,
-            this.inKey,
             this.btnKeyUp,
             this.inScore,
             this.btnPlay,
