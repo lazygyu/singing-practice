@@ -103,7 +103,7 @@ export class ScoreDrawer {
             if (x + width < -halfLength) return;
 
             const y = (noteTop[note.note] * 5) + ((note.octav - 3) * 35) + 150 + (this._oct * 5) - 2.5;
-            if (note.start <= this._elapsed && note.start + note.length - fps >= this._elapsed) {
+            if (note.start <= this._elapsed + 20 && note.start + note.length - fps >= this._elapsed + 20) {
                 current = note;
                 ctx.fillStyle = 'orange';
             } else {
