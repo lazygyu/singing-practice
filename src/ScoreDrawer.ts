@@ -90,6 +90,7 @@ export class ScoreDrawer {
         ctx.translate(halfLength, 0);
         const screenTime = screenLength * fps;
         const half = screenTime / 2;
+        const latency = 40 / fps;
 
         let current: Note | null = null;
 
@@ -103,17 +104,17 @@ export class ScoreDrawer {
             if (x + width < -halfLength) return;
 
             const y = (noteTop[note.note] * 5) + ((note.octav - 3) * 35) + 150 + (this._oct * 5) - 2.5;
-            if (note.start <= this._elapsed + 20 && note.start + note.length - fps >= this._elapsed + 20) {
+            if (note.start <= this._elapsed && note.start + note.length - fps >= this._elapsed) {
                 current = note;
                 ctx.fillStyle = 'orange';
             } else {
                 ctx.fillStyle = 'blue';
             }
-            ctx.fillRect(x, y, width, 5);
+            ctx.fillRect(x + latency, y, width, 5);
             if (note.lylic) {
                 ctx.save();
                 ctx.fillStyle = 'black';
-                ctx.translate(x, y);
+                ctx.translate(x + latency, y);
                 ctx.scale(1, -1);
                 ctx.fillText(note.lylic, 0, 5);
                 ctx.restore();
