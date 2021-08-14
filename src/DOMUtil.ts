@@ -1,4 +1,4 @@
-export function cEl<T extends HTMLElement>(tag: string, attrs: {[key: string]: any}, children?: string | HTMLElement | HTMLElement[]): T {
+export function createElem<T extends HTMLElement>(tag: string, attrs: {[key: string]: any}, children?: string | HTMLElement | HTMLElement[]): T {
     const el = document.createElement(tag);
 
     Object.keys(attrs).forEach(key => {

@@ -1,5 +1,5 @@
 import autobind from 'autobind-decorator';
-import {cEl} from './DOMUtil';
+import {createElem} from './DOMUtil';
 import {EventEmitter} from './EventEmitter';
 
 export class SongEditor extends EventEmitter {
@@ -31,17 +31,17 @@ export class SongEditor extends EventEmitter {
 
 
 
-        this.inKey = cEl('input', {type: 'number', value: '0'});
+        this.inKey = createElem('input', {type: 'number', value: '0'});
 
-        this.chkMelody = cEl('input', {type: 'checkbox', checked: true});
-        const chkLabel = cEl('label', {}, 'play melody');
+        this.chkMelody = createElem('input', {type: 'checkbox', checked: true});
+        const chkLabel = createElem('label', {}, 'play melody');
         chkLabel.appendChild(this.chkMelody);
 
-        this.inVolume = cEl('input', {type: 'range', min: 0, max: 100, value: 30, step: 1});
+        this.inVolume = createElem('input', {type: 'range', min: 0, max: 100, value: 30, step: 1});
 
-        this.inScore = cEl('textarea', {class: 'inScore'});
+        this.inScore = createElem('textarea', {class: 'inScore'});
 
-        this.element = cEl('div', {class: 'song-editor'}, [
+        this.element = createElem('div', {class: 'song-editor'}, [
             chkLabel,
             this.inVolume,
             this.btnKeyDown,
@@ -49,8 +49,8 @@ export class SongEditor extends EventEmitter {
             this.inScore,
             this.btnPlay,
             this.btnStop,
-            this.btnSave,
-            this.btnUpload,
+            // this.btnSave,
+            // this.btnUpload,
         ]);
 
         this.btnPlay.addEventListener('click', e => { this._clickHandler('play'); });
@@ -93,5 +93,5 @@ export class SongEditor extends EventEmitter {
 }
 
 function cBtn(text: string): HTMLButtonElement {
-    return cEl<HTMLButtonElement>('button', {}, text);
+    return createElem<HTMLButtonElement>('button', {}, text);
 }

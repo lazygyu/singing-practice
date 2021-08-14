@@ -1,4 +1,3 @@
-import {ScoreDrawer} from './ScoreDrawer';
 import {noteFromPitch} from './index';
 import {EventEmitter} from './EventEmitter';
 
@@ -73,34 +72,15 @@ export class ToneDetector extends EventEmitter {
         this.emit('note', this.note);
     }
 
-    private correlate(buf: Float32Array, sampleRate: number): number {
-        let size = buf.length;
-        let rms = 0;
-        for (let i = 0; i < size; i++) {
-            rms += (buf[i] * buf[i]);
-        }
-        rms = Math.sqrt(rms / size);
-        if (rms < 0.01) {
-            return -1;
-        }
+    private correlate(buffer: Float32Array, sampleRate: number): number {
+        if (this.isSilentBuffer(buffer)) return -1;
+       
+        const threshold = 0.2;
+        const buf = this.trimBuffer(buffer, threshold);
+        const size = buf.length;
+        
+        const c = new Array(size).fill(0);
 
-        let r1 = 0, r2 = size - 1, thres = 0.2;
-        for (let i = 0; i < size / 2; i++) {
-            if (Math.abs(buf[i]) < thres) {
-                r1 = i;
-                break;
-            }
-        }
-        for (let i = 1; i < size / 2; i++) {
-            if (Math.abs(buf[size - i]) < thres) {
-                r2 = size - i;
-                break;
-            }
-        }
-        buf = buf.slice(r1, r2);
-        size = buf.length;
-
-        let c = new Array(size).fill(0);
         for (let i = 0; i < size; i++) {
             for (let j = 0; j < size - i; j++) {
                 c[i] = c[i] + buf[j] * buf[j + i];
@@ -127,5 +107,35 @@ export class ToneDetector extends EventEmitter {
             T0 = T0 - b / (2 * a);
 
         return sampleRate / T0;
+    }
+
+    private isSilentBuffer(buf: Float32Array): boolean {
+        const size = buf.length;
+        let soundLevel = 0;
+
+        for (let i = 0; i < size; i++) {
+            soundLevel += (buf[i] * buf[i]);
+        }
+        soundLevel = Math.sqrt(soundLevel / size);
+
+        return (soundLevel < 0.01);
+    }
+
+    private trimBuffer(buf: Float32Array, threshold: number = 0.2): Float32Array {
+        const size = buf.length;
+        let r1 = 0, r2 = size - 1, thres = 0.2;
+        for (let i = 0; i < size / 2; i++) {
+            if (Math.abs(buf[i]) < thres) {
+                r1 = i;
+                break;
+            }
+        }
+        for (let i = 1; i < size / 2; i++) {
+            if (Math.abs(buf[size - i]) < thres) {
+                r2 = size - i;
+                break;
+            }
+        }
+        return buf.slice(r1, r2);
     }
 }

@@ -41,7 +41,6 @@ export function parseScore(txt: string): any {
         };
 
         let dots = [1];
-        let curState = 0;
         let legato = false;
         note.note = noteStrings.indexOf(ch);
         next();

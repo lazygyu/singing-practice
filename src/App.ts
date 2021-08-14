@@ -6,7 +6,7 @@ import {Note, parseScore} from './ScoreParser';
 import {Sharer} from './Sharer';
 import {SongArticle} from "./SongArticle";
 import {SongEditor} from './SongEditor';
-import {cEl} from './DOMUtil';
+import {createElem} from './DOMUtil';
 
 const UPDATE_INTERVAL = 1000 / 60;
 
@@ -36,14 +36,14 @@ export class App {
         this.drawer = new ScoreDrawer();
         this.createElements();
         appContainer.appendChild(this.wrapper);
-        requestAnimationFrame(this._loop);
+        requestAnimationFrame(this.loop);
     }
 
     private createElements(): void {
-        this.blind = cEl('div', {class: 'blind'}, 'Click to start app');
-        const wrapper = cEl('div', {});
+        this.blind = createElem('div', {class: 'blind'}, 'Click to start app');
+        const wrapper = createElem('div', {});
 
-        const canvasContainer = cEl('div', {});
+        const canvasContainer = createElem('div', {});
         const canvas = this.drawer.renderElement();
         canvasContainer.appendChild(canvas);
         this.drawer.start([]);
@@ -58,25 +58,15 @@ export class App {
     }
 
     private bindEvents(): void {
-        this.sharer.on('song-select', this._songSelected);
+        this.sharer.on('song-select', this.songSelected);
+
         this.songEditor.on('play', async _ => {
-            if (!this.inited) {
-                return;
-            }
-            const notes = parseScore(this.songEditor.score);
-            this.playSong(notes);
+            if (!this.inited) return;
+            this.playSong(parseScore(this.songEditor.score));
         });
-        this.songEditor.on('stop', _ => {
-            this.stopSong();
-        });
-
-        this.songEditor.on('key-up', _ => {
-            this.keyUp();
-        });
-
-        this.songEditor.on('key-down', _ => {
-            this.keyDown();
-        });
+        this.songEditor.on('stop', this.stopSong);
+        this.songEditor.on('key-up', this.keyUp);
+        this.songEditor.on('key-down', this.keyDown);
         this.songEditor.on('change', (prop, value) => {
             switch (prop) {
                 case 'melody':
@@ -87,6 +77,7 @@ export class App {
                     break;
             }
         });
+
         this.blind.addEventListener('click', async _ => {
             await this.init();
             this.blind.style.display = 'none';
@@ -94,7 +85,7 @@ export class App {
     }
 
     @autobind
-    private _songSelected(song: SongArticle) {
+    private songSelected(song: SongArticle) {
         this.songEditor.score = song.score;
     }
 
@@ -104,7 +95,7 @@ export class App {
             this.detector = new ToneDetector(this.audio);
             this.player = new ToneGenerator(this.audio);
 
-            this.detector.on('note', this._onNote);
+            this.detector.on('note', this.onNote);
             this.detector.on('inited', () => {
                 this.inited = true;
                 this.drawer.inited();
@@ -119,17 +110,18 @@ export class App {
         this.drawer.start(notes);
     }
 
+    @autobind
     public stopSong(): void {
         this.drawer.start([]);
     }
 
     @autobind
-    private _onNote(note: number): void {
+    private onNote(note: number): void {
         this.drawer.pushNote(note);
     }
 
     @autobind
-    private _loop(time: number): void {
+    private loop(time: number): void {
         if (this.lastTime === 0) {
             this.lastTime = time;
         }
@@ -138,15 +130,15 @@ export class App {
         this.lastTime = time;
 
         while (this.elapsed > UPDATE_INTERVAL) {
-            this._update(UPDATE_INTERVAL);
+            this.update(UPDATE_INTERVAL);
             this.elapsed -= UPDATE_INTERVAL;
         }
 
-        this._render();
-        requestAnimationFrame(this._loop);
+        this.render();
+        requestAnimationFrame(this.loop);
     }
 
-    private _update(delta: number): void {
+    private update(delta: number): void {
         if (!this.inited) return;
 
         this.detector.update(delta);
@@ -157,7 +149,7 @@ export class App {
         }
     }
 
-    private _render(): void {
+    private render(): void {
         this.drawer.render();
     }
 
@@ -176,10 +168,12 @@ export class App {
         }
     }
 
+    @autobind
     public keyUp(): void {
         this.setKey(this.key + 1);
     }
 
+    @autobind
     public keyDown(): void {
         this.setKey(this.key - 1);
     }

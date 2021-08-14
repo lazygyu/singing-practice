@@ -1,5 +1,4 @@
 import {App} from './App';
-import {parseScore} from './ScoreParser';
 import './style.scss';
 
 export function noteFromPitch(frequency: number): number  {
@@ -8,4 +7,3 @@ export function noteFromPitch(frequency: number): number  {
 }
 
 const app = new App(document.querySelector('#app'));
-(window as any).app = app;
