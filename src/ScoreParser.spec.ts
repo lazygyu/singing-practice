@@ -9,7 +9,7 @@ describe('ScoreParser', () => {
         return noteStrings.indexOf(ch.toUpperCase());
     }
     function makeNote(data: Partial<Note>): Note {
-        const note = {note: data.note ?? 0, length: data.length ?? 0, octav: data.octav ?? 4, start: _notestart};
+        const note: Note = {note: data.note ?? 0, length: data.length ?? 0, octav: data.octav ?? 4, start: _notestart};
         if (data.lylic) {
             note.lylic = data.lylic;
         }
